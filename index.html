@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Talk Request</title>
+  <meta name="theme-color" content="#0a1a2f" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="scanlines"></div>
+  <main id="app" class="state-normal">
+    <header class="topbar">
+      <h1>Talk Request</h1>
+      <div class="toggles">
+        <div id="quotaBadge" class="badge" title="Daily uses left">--</div>
+        <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M19.4 15a7.96 7.96 0 0 0 .1-1l1.8-1-1.8-3.2-1.1.2a8.2 8.2 0 0 0-.8-.8l.2-1.1L13.6 6l-1 1a8.2 8.2 0 0 0-1 0l-1-1L6.3 6.9l.2 1.1c-.3.3-.6.5-.8.8l-1.1-.2L2.8 12l1.8 1a7.96 7.96 0 0 0 .1 1l-1.8 1 1.8 3.2 1.1-.2c.2.3.5.6.8.8l-.2 1.1L10 21l1-1c.3 0 .7 0 1 0l1 1 3.2-.8-.2-1.1c.3-.2.6-.5.8-.8l1.1.2 1.8-3.2-1.8-1Z" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </button>
+        <label class="switch" title="Sound">
+          <input type="checkbox" id="soundToggle" checked />
+          <span class="slider"></span>
+          <span class="label">Sound</span>
+        </label>
+        <label class="switch" title="Vibration">
+          <input type="checkbox" id="vibrateToggle" />
+          <span class="slider"></span>
+          <span class="label">Vibration</span>
+        </label>
+      </div>
+    </header>
+
+    <section class="center">
+      <button id="talkBtn" class="emergency-btn" aria-label="Request to Talk">
+        <span class="glow"></span>
+        <span class="text">REQUEST TO TALK</span>
+      </button>
+      <div class="quota-text" id="quotaText">Requests left today: --</div>
+    </section>
+  </main>
+
+  <!-- Settings modal -->
+  <div id="settingsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Settings">
+    <div class="modal-card">
+      <h2>Settings</h2>
+      <div class="settings-row">
+        <label for="dailyLimit" class="field-label">Times per day</label>
+        <input id="dailyLimit" type="number" min="0" step="1" value="5" class="number-input" />
+      </div>
+      <div class="settings-row">
+        <label for="soundStyle" class="field-label">Alarm sound</label>
+        <select id="soundStyle" class="number-input">
+          <option value="beep">Digital Beep</option>
+          <option value="chime">Soft Chime</option>
+          <option value="buzzer">Buzzer</option>
+          <option value="bell">Bell</option>
+          <option value="silent">Silent</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="volume" class="field-label">Volume</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7"/>
+      </div>
+      <div class="settings-actions">
+        <button id="testSound" class="ghost">Test sound</button>
+        <button class="ghost close">Close</button>
+        <button id="saveSettings" class="primary">Save</button>
+      </div>
+      <small class="muted">Audio must be enabled by tapping once. iPad system alarm list cannot be accessed from web apps; choose one of the built-in sounds.</small>
+      <small id="vibrateNote" class="muted"></small>
+    </div>
+  </div>
+
+  <!-- Preset modal -->
+  <div id="presetModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Pick a time">
+    <div class="modal-card">
+      <h2>Select a Time</h2>
+      <div class="grid">
+        <button class="chip" data-seconds="10">10 sec</button>
+        <button class="chip" data-seconds="20">20 sec</button>
+        <button class="chip" data-seconds="30">30 sec</button>
+        <button class="chip" data-seconds="60">1 min</button>
+        <button class="chip" data-seconds="120">2 min</button>
+        <button class="chip" data-seconds="180">3 min</button>
+      </div>
+      <button class="ghost close">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Countdown screen -->
+  <div id="countdownScreen" class="countdown hidden" aria-hidden="true">
+    <div class="hud">
+      <button id="backBtn" class="ghost small">&larr; Back</button>
+      <div class="status" id="statusLabel">Focus time</div>
+    </div>
+
+    <div class="dial-wrap">
+      <svg class="dial" viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <circle class="bg" cx="60" cy="60" r="52" />
+        <circle class="fg" cx="60" cy="60" r="52" stroke-linecap="round" />
+      </svg>
+      <div class="dial-center">
+        <div class="pulse"></div>
+        <div id="timeInside" class="time-inside">00:00</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="pauseBtn" class="ghost">Pause</button>
+      <button id="resumeBtn" class="primary" disabled>Resume</button>
+      <button id="resetBtn" class="danger">Reset</button>
+    </div>
+  </div>
+
+  <!-- Finish overlay -->
+  <div id="finishOverlay" class="overlay hidden" aria-hidden="true" role="alert">
+    <div class="overlay-card">
+      <h2>It’s time to attend class.</h2>
+      <p>Please return attention to the lesson.</p>
+      <button id="okBtn" class="primary">OK</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden" role="status">No requests left today.</div>
+
+  <footer class="footer">
+    <small>Modern minimal app • Arcade style visuals</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
